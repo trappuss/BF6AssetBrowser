@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "assetbrowser",
+  "version": "0.1.0",
+  "description": "The (Game|Engine)AssetBrowser family: one shared core (abcore) and one plugin per game.",
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [ "widgets", "opengl", "gui", "png", "jpeg" ]
+    },
+    "qtsvg",
+    "zlib",
+    "lz4",
+    "zstd",
+    "liblzma"
+  ],
+  "builtin-baseline": "ea1a7396b05637a53bf23c078647ecc0edee4b80"
+}

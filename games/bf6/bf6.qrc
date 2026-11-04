@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/bf6">
+    <file>types.txt</file>
+    <file>bf6_names.json</file>
+  </qresource>
+</RCC>

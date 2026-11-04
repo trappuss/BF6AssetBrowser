@@ -1,0 +1,288 @@
+{
+  "_comment": "BF6 name layer - codename+set -> real Squad/Operator/Skin. BF6 display names are server-side (absent from installed files), so these are in-game visual IDs, the only ground truth. Keyed on authored path tokens (codename cha####name, set set_NNN); a set entry overrides the codename-level operator/squad/skin. Seed entries are user-confirmed; many operator/squad/skin IDs were imported from the YWR BF6 community rip (folder taxonomy faction/squad/class-or-name/skin). Override or correct in data/bf6_names.json beside the exe without a rebuild.",
+  "version": 2,
+  "codenames": {
+    "cha0045hawk": {
+      "operator": "Gecko",
+      "squad": "Dagger 1-3",
+      "sets": {
+        "set_002": {
+          "skin": "Deepwatch Operative"
+        }
+      }
+    },
+    "cha0040tank": {
+      "operator": "Al-Khatib",
+      "squad": "Strix Raiders",
+      "sets": {
+        "set_003": {
+          "skin": "Gloom Piercer",
+          "desc": "Confident and fearless, take point and lead your squad into the night."
+        },
+        "set_005": {
+          "operator": "Holm",
+          "squad": "Panopticon 8",
+          "skin": "Aegis VII"
+        }
+      }
+    },
+    "cha0029tack": {
+      "operator": "Holm",
+      "squad": "Panopticon 8",
+      "skin": "CEC Specialist"
+    },
+    "cha0009roar": {
+      "operator": "Coyote Assault",
+      "squad": "Coyote",
+      "sets": {
+        "set_015": {
+          "skin": "Dusk Agent",
+          "desc": "Slink towards hostile positions, wreaking havoc as the day turns to night."
+        },
+        "set_006": {
+          "skin": "Regiment"
+        },
+        "set_021": {
+          "skin": "Nullwater Operative"
+        }
+      }
+    },
+    "cha0062aloe": {
+      "operator": "Sef",
+      "squad": "Vigil"
+    },
+    "cha0063zone": {
+      "operator": "Darien Reeves",
+      "squad": "Vigil"
+    },
+    "cha0064loaf": {
+      "operator": "Erin McNeil",
+      "squad": "Vigil"
+    },
+    "cha0065ulan": {
+      "operator": "Van Hassel",
+      "squad": "Vigil"
+    },
+    "cha0032sulk": {
+      "operator": "Raze",
+      "squad": "Rampant"
+    },
+    "cha0051silk": {
+      "operator": "Thu Dinh"
+    },
+    "cha0002know": {
+      "operator": "Support",
+      "squad": "UK - United Albion",
+      "sets": {
+        "set_005": {
+          "skin": "Survivalist"
+        }
+      }
+    },
+    "cha0003aver": {
+      "operator": "Recon",
+      "squad": "UK - United Albion",
+      "sets": {
+        "set_002": {
+          "skin": "Recce"
+        },
+        "set_003": {
+          "skin": "Duty Bound"
+        }
+      }
+    },
+    "cha0004jazz": {
+      "operator": "Engineer",
+      "squad": "UK - United Albion",
+      "sets": {
+        "set_002": {
+          "skin": "Hunter Killer"
+        },
+        "set_005": {
+          "skin": "Wedgehead"
+        },
+        "set_008": {
+          "skin": "Drop Shadow"
+        }
+      }
+    },
+    "cha0005raze": {
+      "operator": "Assault",
+      "squad": "Desert Locusts",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0008idol": {
+      "operator": "Engineer",
+      "squad": "Desert Locusts",
+      "sets": {
+        "set_001": {
+          "skin": "Burnout"
+        },
+        "set_011": {
+          "skin": "Burnout"
+        }
+      }
+    },
+    "cha0011mute": {
+      "operator": "Recon",
+      "squad": "US - Coyote Squad",
+      "sets": {
+        "set_002": {
+          "skin": "Speak No Evil"
+        }
+      }
+    },
+    "cha0012open": {
+      "operator": "Engineer",
+      "squad": "US - Coyote Squad",
+      "sets": {
+        "set_003": {
+          "skin": "Field-Tested"
+        }
+      }
+    },
+    "cha0013melt": {
+      "operator": "Assault",
+      "squad": "Espada",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0015belt": {
+      "operator": "Recon",
+      "squad": "Espada",
+      "sets": {
+        "set_002": {
+          "skin": "Harvester"
+        }
+      }
+    },
+    "cha0024jinx": {
+      "operator": "Engineer",
+      "squad": "Fireteam Vedmak",
+      "sets": {
+        "set_016": {
+          "skin": "Controlled Burn"
+        }
+      }
+    },
+    "cha0027tear": {
+      "operator": "Weathers",
+      "squad": "The 323",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0035lake": {
+      "operator": "Lang",
+      "squad": "Task Force Vector",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0036sour": {
+      "operator": "Kit",
+      "squad": "Task Force Vector",
+      "sets": {
+        "set_003": {
+          "skin": "Jin Jie's Honour"
+        }
+      }
+    },
+    "cha0037rock": {
+      "operator": "Brooke",
+      "squad": "Strix Raiders",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0043grey": {
+      "operator": "Rebar",
+      "squad": "Steel Talon",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0046mace": {
+      "operator": "Hemlock",
+      "squad": "Dagger 1-3",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        },
+        "set_003": {
+          "skin": "Dragon Sentinel"
+        }
+      }
+    },
+    "cha0049coat": {
+      "operator": "Takazato",
+      "squad": "Makara Group",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0053vase": {
+      "operator": "Vortex",
+      "squad": "CJTF Helix (Top Gun)",
+      "sets": {
+        "set_001": {
+          "skin": "Standard Issue"
+        }
+      }
+    },
+    "cha0055fang": {
+      "operator": "Rooster",
+      "squad": "CJTF Helix (Top Gun)"
+    },
+    "cha6001medi": {
+      "operator": "Lopez"
+    },
+    "cha6002bolt": {
+      "operator": "Murphy"
+    },
+    "cha6003wolf": {
+      "operator": "Haz Carter"
+    },
+    "cha6004hawk": {
+      "operator": "Gecko Espina"
+    },
+    "cha6006dash": {
+      "operator": "Armstrong (Ballcap)"
+    },
+    "cha6007rook": {
+      "operator": "Blake"
+    },
+    "cha6008song": {
+      "operator": "Martinez"
+    },
+    "cha6013apex": {
+      "operator": "Kincaid"
+    },
+    "cha6015hunt": {
+      "operator": "Secret Service Agent John Rossetti"
+    },
+    "cha6016flag": {
+      "operator": "Secret Service CAT"
+    },
+    "cha6017heli": {
+      "operator": "Helicopter Pilot-Crew Chief"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+build/
+out/
+.vs/
+*.user
+vcpkg_installed/
+CMakeUserPresets.json
+
+# Built deliverables, retired code, scratch — not part of the source repo.
+_deliveries/
+_retired/
+*.pyc
+__pycache__/
+
+# NEVER commit game data, decoded assets, or derived caches.
+*.mpk
+*.mpkinfo
+*.dec
+gamedata/
+*-gamedata/
+*-sample/
+dr_charsig_*.bin
+dr_matnames_*.bin
+dr_materials_*.bin
+
+# Local agent/session state and build logs — not part of the source repo.
+.claude/
+bld.err
