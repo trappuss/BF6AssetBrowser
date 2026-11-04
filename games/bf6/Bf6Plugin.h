@@ -20,7 +20,7 @@ public:
     ~Bf6Plugin() override;
 
     QString productName() const override { return QStringLiteral("BF6AssetBrowser"); }
-    QString version() const override { return QStringLiteral("0.1.0"); }
+    QString version() const override { return QStringLiteral("0.2.0"); }
     core::IGameStore* store() override { return &m_store; }
 
     QVector<core::TabSpec>      tabs() override;

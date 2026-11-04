@@ -450,7 +450,7 @@ bool Bf6Store::open(const QString& dataDir, QString* error, core::ProgressFn pro
     // r13 = vertex normals NEGATED — the authored normals pointed inward vs our winding (shading read
     // inverted; in Blender it needed a manual Alt+N Reset Vectors), now aligned with the faces.
     const QFileInfo fi(charToc);
-    m_fingerprint = QStringLiteral("bf6-r13-%1-%2").arg(fi.size()).arg(fi.lastModified().toSecsSinceEpoch());
+    m_fingerprint = QStringLiteral("bf6-r14-%1-%2").arg(fi.size()).arg(fi.lastModified().toSecsSinceEpoch());
 
     if (progress) progress(QStringLiteral("Indexed %1 resources (%2 meshes, %3 textures, %4 character + %5 weapon + %6 vehicle meshes)")
                                .arg(res.size()).arg(m_model.size()).arg(m_texture.size())
@@ -569,15 +569,38 @@ QVector<core::Material> Bf6Store::resolveMaterials(const core::AssetId& id, cons
     // and _cm (packed roughness/metalness → glTF ORM). A character set has a texture per region
     // (upperbody/lowerbody/hands/headgear/…), so a single shared material left every part but one
     // untextured — this maps each part to its own region textures, with full PBR.
-    QString key;   // cha0024jinx_set_011
+    QString key;          // character set: "cha0024jinx_set_011" (matched as a name substring)
+    QString hwTexDir;     // weapon/vehicle: the mesh's own folder — its part textures live right beside it
     if (id.value & kFullBit) {
         // Assembled full character: all parts share this char+set key, so the per-region loop below
         // resolves each merged region (upperbody/headgear/glow/…) exactly as the single-part path does.
         const int fidx = int(id.value & ~kFullBit);
         if (fidx >= 0 && fidx < m_fullKeys.size()) key = m_fullKeys[fidx];
     } else if (const bf6::Resource* ms = resAt(id)) {
-        const CharInfo ci = parseChar(QString::fromStdString(ms->name));
-        if (ci.ok && !ci.charId.isEmpty() && !ci.set.isEmpty()) key = ci.charId + QLatin1Char('_') + ci.set;
+        const QString mn = QString::fromStdString(ms->name);
+        if (mn.contains(QLatin1String("/hardware/"))) {
+            // Hardware art (weapons, vehicles, gadgets, …): textures sit in the mesh's own folder as
+            // t_<part>_<cs|nmt|nma|wo>, not under a character-set key. Key off that folder; each cooked
+            // region maps to its part texture there (see the hardware branch of findTex below).
+            const int slash = mn.lastIndexOf(QLatin1Char('/'));
+            if (slash > 0) hwTexDir = mn.left(slash + 1);
+        } else {
+            const CharInfo ci = parseChar(mn);
+            if (ci.ok && !ci.charId.isEmpty() && !ci.set.isEmpty()) key = ci.charId + QLatin1Char('_') + ci.set;
+        }
+    }
+    const bool hardware = !hwTexDir.isEmpty();
+    // Textures that sit directly in the weapon/vehicle mesh's folder (filename, resource index), built
+    // once so the per-region match below is a tiny scan instead of 6×(the 94k-texture list) per model.
+    QVector<QPair<QString, int>> hwTex;
+    if (hardware) {
+        for (int ti : m_texture) {
+            const QString tn = QString::fromStdString(m_toc.resources()[size_t(ti)].name);
+            if (!tn.startsWith(hwTexDir)) continue;
+            const QString f = tn.mid(hwTexDir.size());
+            if (f.contains(QLatin1Char('/')) || !f.startsWith(QLatin1String("t_"))) continue;  // same folder, a t_ map
+            hwTex.push_back({ f, ti });
+        }
     }
     // Skin regions with no texture of their own share one (arms are part of the upper-body skin set).
     auto texRegionFor = [](const QString& r) -> QString {
@@ -586,7 +609,62 @@ QVector<core::Material> Bf6Store::resolveMaterials(const core::AssetId& id, cons
     };
     // The set texture named …_<region><suffix> (e.g. "_upperbody_cs"); first match wins.
     auto findTex = [&](const QString& region, const QStringList& suffixes) -> core::AssetId {
-        if (key.isEmpty() || region.isEmpty()) return {};
+        if (region.isEmpty()) return {};
+        if (hardware) {
+            // Weapon/vehicle: the texture is t_<part>_<suffix> in the mesh's folder (hwTex). The cooked
+            // region name is the TRAILING token of that part — the whole thing for weapons ("wep_mg_pkm_base"
+            // == t_wep_mg_pkm_base_cs), a short/variant stem for vehicles ("turret"/"chassi" ending
+            // t_veh_tank_cv90_turret_cs / _chassis_cs, "fuselage_01" ending t_veh_airplane_fa18f_fuselage01_cs).
+            // Normalise both sides so author quirks line up — drop an underscore before a trailing number
+            // ("fuselage_01"→"fuselage01") and a plural 's' ("chassis"→"chassi", "interiors"→"interior") —
+            // then match the whole part or its tail token. First suffix in the list wins; regions with no map
+            // (glass, lights, destruction) resolve to nothing and stay untextured.
+            static const QRegularExpression reUsNum(QStringLiteral("_(?=\\d)"));
+            auto norm = [](QString s) { s = s.toLower(); s.remove(reUsNum);
+                                        if (s.endsWith(QLatin1Char('s'))) s.chop(1); return s; };
+            const QString nR = norm(region);
+            // Candidate part tokens, best first: the region itself, then — only for the dominant exterior
+            // and cabin surfaces — the sibling names other vehicles use for the same thing. A vehicle folder
+            // carries just one of each, so trying the whole group can't mis-pick; this bridges "mainbody" /
+            // "body" → exterior/fuselage/chassis and "interior(s)" → cockpit, which no lexical rule relates.
+            // Everything else resolves by its own name, and an unmatched region stays untextured.
+            static const QVector<QStringList> kAlias = {
+                { QStringLiteral("body"), QStringLiteral("mainbody"), QStringLiteral("hull"), QStringLiteral("main"),
+                  QStringLiteral("exterior"), QStringLiteral("fuselage"), QStringLiteral("chassi") },
+                { QStringLiteral("interior"), QStringLiteral("cockpit"), QStringLiteral("inside"),
+                  QStringLiteral("sideseat"), QStringLiteral("cabin") },
+            };
+            QStringList cands; cands << nR;
+            for (const QStringList& grp : kAlias)
+                if (grp.contains(nR)) { for (const QString& a : grp) if (a != nR) cands << a; break; }
+            for (const QString& cand : cands) {
+                const QString usc = QLatin1Char('_') + cand;
+                for (const QString& suf : suffixes)
+                    for (const auto& pr : hwTex) {
+                        const QString& f = pr.first;
+                        if (!f.endsWith(suf)) continue;
+                        QString part = f.mid(2, f.size() - 2 - suf.size());
+                        while (part.endsWith(QLatin1Char('_'))) part.chop(1);
+                        const QString nP = norm(part);
+                        if (nP == cand || nP.endsWith(usc))
+                            return core::AssetId{ kScheme, uint64_t(pr.second) };
+                    }
+            }
+            // Last resort: the region is a plain interior token of the part (gadget region "spraycan" in
+            // t_gad_misc_spraycan_base). hwTex is already scoped to this one item's folder, so a bare
+            // whole-token match can't stray to another item.
+            for (const QString& suf : suffixes)
+                for (const auto& pr : hwTex) {
+                    const QString& f = pr.first;
+                    if (!f.endsWith(suf)) continue;
+                    QString part = f.mid(2, f.size() - 2 - suf.size());
+                    while (part.endsWith(QLatin1Char('_'))) part.chop(1);
+                    if (norm(part).split(QLatin1Char('_')).contains(nR))
+                        return core::AssetId{ kScheme, uint64_t(pr.second) };
+                }
+            return {};
+        }
+        if (key.isEmpty()) return {};
         for (const QString& suf : suffixes) {
             const QString tail = QLatin1Char('_') + region + suf;
             for (int ti : m_texture) {
@@ -628,9 +706,11 @@ QVector<core::Material> Bf6Store::resolveMaterials(const core::AssetId& id, cons
                 mat.emissive.image = csRgba.convertToFormat(QImage::Format_RGB888);
                 mat.emissive.srgb = true;
             }
-            QImage nxRgba;   // _nx decoded RGBA: R,G = tangent normal; ALPHA = METALNESS (sparse, on metal
-                             // hardware); kept so the ORM below can read the alpha. (B is an AO/cavity term.)
-            if (const core::AssetId n = findTex(tr, { QStringLiteral("_nx"), QStringLiteral("_na") }); n.isValid()) {
+            QImage nxRgba;   // normal map decoded RGBA: R,G = tangent normal; ALPHA = METALNESS (sparse, on
+                             // metal); kept so the ORM below can read the alpha. (B is an AO/cavity term.)
+                             // Suffix is _nx/_na on characters, _nmt/_nma on weapons & vehicles — same packing.
+            if (const core::AssetId n = findTex(tr, { QStringLiteral("_nx"), QStringLiteral("_na"),
+                                                       QStringLiteral("_nmt"), QStringLiteral("_nma") }); n.isValid()) {
                 // BF6 "_nx" (BC7): tangent normal in R,G; reconstruct Z from them (greenDown → DirectX,
                 // flipped to glTF/OpenGL by the exporter). The normal is exported OPAQUE (RGB888) — keeping
                 // _nx's alpha on the PNG made importers read it transparent/flat. That alpha is NOT normal
@@ -1275,7 +1355,8 @@ bool Bf6Store::loadModel(const core::AssetId& id, core::Geometry& geo, QString* 
           QString nm; for (size_t p = nameOff; p < mb.size() && mb[p] >= 32 && mb[p] < 127 && nm.size() < 48; ++p) nm += QLatin1Char(char(mb[p]));
           if (nm.startsWith(QLatin1String("M_"), Qt::CaseInsensitive)) nm = nm.mid(2);
           region = nm.toLower(); }
-        if (region.contains(QLatin1String("shadow"))) continue;      // shadow-caster proxy: redundant geometry
+        if (region.contains(QLatin1String("shadow")) ||             // shadow-caster proxy: redundant geometry
+            region.contains(QLatin1String("zonly"))) continue;      // z-only (depth-prepass) proxy: ditto (e.g. vehicle "chassi_zonly")
         const size_t sd = sdh + 32;                                  // Fb_bf6_mesh: num4 + 368*i + 32
         const int idxCount  = M.i32(sd);         // triangles in this section
         const int idxStart  = M.i32(sd + 4);     // first index (units of idxSize)
